@@ -1,0 +1,332 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.tfstec.tfsbase</groupId>
+  <artifactId>tfs-base</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>tfsbase</name>
+  <description>调用基础</description>
+  
+  <!-- 配置属性 -->
+  <properties>
+	 <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+     <spring.version>4.0.2.RELEASE</spring.version>
+	 <slf4j.version>1.7.7</slf4j.version>
+	 <log4j.version>1.2.17</log4j.version>
+  </properties>
+  
+   <dependencies>
+     <!-- 添加自定义依赖包 -->
+     <dependency>
+		  <groupId>com.tfstec</groupId>
+		  <artifactId>nga-redis</artifactId>
+		  <version>1.0.1</version>
+	 </dependency>
+	 
+	 <!-- 添加dubbo服务依赖 -->
+	 <dependency>
+	       <groupId>com.alibaba</groupId>
+           <artifactId>dubbo</artifactId>             
+           <version>2.8.4</version>
+	       <exclusions>
+	           <exclusion>
+	               <groupId>org.springframework</groupId>
+	               <artifactId>spring</artifactId>
+	           </exclusion>
+	       </exclusions>
+      </dependency>
+       
+      <!-- 添加zookeeper服务依赖 -->
+      <dependency>
+          <groupId>org.apache.zookeeper</groupId>
+          <artifactId>zookeeper</artifactId>
+          <version>3.4.6</version>
+      </dependency>
+      <dependency>
+          <groupId>com.github.sgroschupf</groupId>
+          <artifactId>zkclient</artifactId>
+          <version>0.1</version>
+      </dependency>
+      
+	 <!-- 添加redis依赖包 -->
+	 <dependency>
+		<groupId>redis.clients</groupId>
+		<artifactId>jedis</artifactId>
+		<version>2.6.2</version>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.commons</groupId>
+		<artifactId>commons-pool2</artifactId>
+		<version>2.0</version>
+	</dependency>
+	
+      <!-- 日志文件管理包 -->
+      <dependency>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+          <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+          <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+          <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+		  <groupId>commons-logging</groupId>
+		  <artifactId>commons-logging-api</artifactId>
+		  <version>1.1</version>
+	  </dependency>
+	  
+	  <!-- 公共包 -->
+      <dependency>
+		 <groupId>commons-io</groupId>
+		 <artifactId>commons-io</artifactId>
+		 <version>2.4</version>
+	  </dependency>
+      <dependency>
+		 <groupId>commons-lang</groupId>
+		 <artifactId>commons-lang</artifactId>
+		 <version>2.6</version>
+	  </dependency>
+	  <dependency>
+		 <groupId>commons-codec</groupId>
+		 <artifactId>commons-codec</artifactId>
+		 <version>1.7</version>
+	  </dependency>
+			
+	  <!-- 添加spring服务依赖 -->
+      <dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-expression</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+			
+		 <!-- 邮件发送包依赖 -->
+		 <dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.5.0-b01</version>
+		 </dependency>
+		 
+		 <!-- JSON格式化对象，方便输出日志 -->
+	     <dependency>
+	         <groupId>com.alibaba</groupId>
+	         <artifactId>fastjson</artifactId>
+	         <version>1.2.7</version>
+	     </dependency>
+	     <dependency>
+			 <groupId>com.google.code.gson</groupId>
+			 <artifactId>gson</artifactId>
+			 <version>2.3.1</version>
+		 </dependency>
+		 
+		 <dependency>
+		    <groupId>net.sf.json-lib</groupId>
+		    <artifactId>json-lib</artifactId>
+		    <version>2.4</version>
+		    <classifier>jdk15</classifier>
+		</dependency>
+		<dependency>
+		    <groupId>org.aspectj</groupId>
+		    <artifactId>aspectjrt</artifactId>
+		    <version>1.7.3</version>    
+		</dependency>
+		<dependency>
+		    <groupId>org.aspectj</groupId>
+		    <artifactId>aspectjweaver</artifactId>
+		    <version>1.7.3</version>
+		</dependency>
+	
+	  <!-- 添加servlet服务依赖 -->
+	  <dependency>
+		  <groupId>javax.servlet</groupId>
+		  <artifactId>javax.servlet-api</artifactId>
+		  <version>3.1.0</version>
+	  </dependency>
+	  
+	  <!-- BASE64加减密依赖包 -->
+	<dependency>
+		<groupId>it.sauronsoftware.base64</groupId>
+		<artifactId>javabase64</artifactId>
+		<version>1.3.1</version>
+	</dependency>
+	
+	<!-- xstream -->
+	 <dependency>
+		<groupId>com.thoughtworks.xstream</groupId>
+		<artifactId>xstream</artifactId>
+		<version>1.4.3</version>
+	 </dependency>
+	 <dependency>
+		<groupId>dom4j</groupId>
+		<artifactId>dom4j</artifactId>
+		<version>1.6.1</version>
+	 </dependency>
+	 <dependency>
+		<groupId>jaxen</groupId>
+		<artifactId>jaxen</artifactId>
+		<version>1.1-beta-9</version>
+	</dependency>
+	 
+	 <!-- http请求依赖包 -->
+	<dependency>
+		<groupId>commons-httpclient</groupId>
+		<artifactId>commons-httpclient</artifactId>
+		<version>3.1</version>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.commons</groupId>
+		<artifactId>commons-pool2</artifactId>
+		<version>2.0</version>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.httpcomponents</groupId>
+		<artifactId>httpclient</artifactId>
+		<version>4.3.3</version>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.httpcomponents</groupId>
+		<artifactId>httpcore</artifactId>
+		<version>4.3.3</version>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.httpcomponents</groupId>
+		<artifactId>httpmime</artifactId>
+		<version>4.3.3</version>
+	</dependency>
+	
+	<!-- dal start -->
+	<dependency>
+		<groupId>com.esotericsoftware.kryo</groupId>
+		<artifactId>kryo</artifactId>
+		<version>2.24.0</version>
+	</dependency>
+	<dependency>
+		<groupId>de.javakaffee</groupId>
+		<artifactId>kryo-serializers</artifactId>
+		<version>0.26</version>
+	</dependency>
+	<dependency>
+		<groupId>com.fasterxml.uuid</groupId>
+		<artifactId>java-uuid-generator</artifactId>
+		<version>3.1.3</version>
+	</dependency>
+	
+   </dependencies>
+   
+  <!--指定仓库地址  -->
+  <repositories>
+		<repository>
+			<id>Central</id>
+			<name>Central Repository</name>
+			<url>http://172.16.201.7:8081/nexus/content/groups/public</url>
+			<layout>default</layout>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+  </repositories>
+  
+  <!-- 指定插件仓库 -->
+  <pluginRepositories>  
+        <pluginRepository>  
+            <id>Central</id>  
+            <name>Central</name>  
+            <url>http://172.16.201.7:8081/nexus/content/groups/public/</url>  
+            <releases>  
+                <enabled>true</enabled>  
+            </releases>  
+            <snapshots>  
+                <enabled>true</enabled>  
+            </snapshots>  
+        </pluginRepository>  
+  </pluginRepositories> 
+    
+  <!-- 项目的发布 -->
+  <distributionManagement>  
+	  <repository>
+	    <id>releases</id>
+	    <name>User Project Release</name> 
+	    <url>http://172.16.201.7:8081/nexus/content/repositories/releases</url>
+	  </repository>
+	  
+	  <snapshotRepository>
+	    <id>snapshots</id>
+	    <name>User Project SNAPSHOTS</name>
+	    <url>http://172.16.201.7:8081/nexus/content/repositories/snapshots</url>
+	    <uniqueVersion>true</uniqueVersion>
+      </snapshotRepository>
+   </distributionManagement>
+    
+  <!-- 配置编译工程补丁 -->	
+  <build>
+	<plugins>
+		<plugin>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<configuration>
+				<source>1.7</source>
+				<target>1.7</target>
+			</configuration>
+		</plugin>
+		<plugin>
+			<artifactId>maven-jar-plugin</artifactId>
+			<version>2.3.2</version>
+		</plugin>
+	</plugins>
+	<defaultGoal>compile</defaultGoal>
+  </build>
+</project>
