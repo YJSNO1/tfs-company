@@ -196,4 +196,56 @@ Line 270 密码格式校验
 
 20161028
 rsa  公私钥生成  读取文件解密
+私钥
+
+20161026
+查看修改个人资料接口代码（已完成 20161027）
+20161027
+申请提现之后  提现记录中的状态应为审核中 不应为提现成功（已完成）
+
+账单查询提现记录时空指针异常问题
+
+
+
+mHsPmTI2JsMv54Kien8opWtGeA86lDV38JYw+A4jAR2Ngai6cjboOVkj669s5DlLVLqr/f/JW16udVauQgrvMq14CjQa3/ohUs0h2G1Bul9yokXRDzMp5CryN/IA9HXab0VuDiNy7GZ8u3/edGDGn4dVBLJtwpI8hteunu1jvoM=
+
+
+20161031
+rsa加解密
+对接运营接口
+
+	password = RSAUtil.rsaDeCode(ServiceConfig.rsaPrivateKey, password);
+
+
+
+20161101
+出额度之后提现失败（）
+ 
+
+还款界面预交款
+
+消息已完成
+100 系统通知
+200 申请消息
+300 提现消息
+400 还款消息
+500 活动通知
+
+开放短信发送（已完成待短信服务器开启）
+
+短信 可用业务
+20161101
+申请额度时 将推荐人编号和id传递给财务（已完成）
+
+
+添加单位电话（已完成）
+
+
+通讯录视婚姻情况传递图片列表（燕云）
+
+
+
+
+
+
 
