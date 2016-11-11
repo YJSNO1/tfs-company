@@ -1,0 +1,14 @@
+#!/bin/bash
+export JAVA_HOME= /usr/local/java/jdk1.7.0_79
+TIME=`date +%F-%T`
+tomcat_pid=`/usr/sbin/lsof -n -P -t -i :80`
+[ -n "$tomcat_pid" ] && kill -9 $tomcat_pid
+[ -f /data/apache-tomcat-7.0.68/webapps/tfs-plm-biz.zip ] && cp /data/apache-tomcat-7.0.68/webapps/tfs-plm-biz.zip   /data/HistoryProject/tfs-plm-biz-$TIME.zip
+sudo rm -rf /data/apache-tomcat-7.0.68/webapps/tfs-plm-biz
+cd /data/apache-tomcat-7.0.68/webapps/
+unzip tfs-plm-biz.zip 
+sudo rm -rf /data/apache-tomcat-7.0.68/webapps/tfs-plm-biz.zip 
+cd /data/apache-tomcat-7.0.68/bin
+./startup.sh
+
+
