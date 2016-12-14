@@ -1,0 +1,193 @@
+
+	@Override
+	public String saveLinkmanInfonew(String userId, String applyId,
+			ApplyLinkmanInfo applyLinkmanInfo, String tagImgUrlPrefix) {
+		//1.建立标志与返回code msg
+		
+		String code = GlobalVar.RC_SUCCESS;
+		String msg = GlobalVar.RM_SUCCESS;
+		// 数据校验标志
+		boolean infoRight = true;
+		// 业务逻辑和具体操作分开的信号旗
+		int operateFlag = 0;
+		// 2 判断入参合法性
+		if (StringUtils.isEmpty(applyLinkmanInfo.getLinkmanName())) {
+			infoRight = false;
+			msg = GlobalVar.RM_LINKMAN_MSG2;
+		}
+
+		String phone = applyLinkmanInfo.getLinkmanPhone();
+		if (!StringUtils.isEmpty(phone)) {
+			if (phone.startsWith("+86")) {
+				phone = phone.substring(3, phone.length());
+			}
+			if (!StringUtils.isMobile(phone)) {
+				infoRight = false;
+				msg = GlobalVar.RM_MOBILERROR;
+				logger.info("saveLinkmanInfo param linkManPhone is error!");
+			}
+		} else {
+			infoRight = false;
+			logger.info("saveLinkmanInfo param linkManPhone is null!");
+			msg = GlobalVar.RM_MOBILERROR;
+
+		}
+       //判断联系人数据完整行结束
+		if (infoRight) {
+			// 3 获得逻辑
+			List<ApplyLinkmanInfo> oldList = applyDao.queryApplyLinkmanInfo(userId, applyId);// 获取已经添加的联系人
+
+			int linkManNumber = this.getLinkManNumberLimit();// 申请联系人配置个数
+			if (StringUtils.isEmpty(oldList)) {
+				operateFlag = 1;
+			} else {
+				int size = oldList.size();
+				// 防止相同的号码出现在不同的位置 开始
+				for (int i = 0; i < size; i++) {
+					if (oldList.get(i).getLinkmanPhone().equals(applyLinkmanInfo.getLinkmanPhone())
+							&& !(oldList.get(i).getAutoIndex()
+									.equals(applyLinkmanInfo.getAutoIndex()))) {
+						infoRight = false;
+						msg = "请不要重复添加!";
+					}
+				}
+				// 防止相同的号码出现在不同的位置 结束
+				//操作逻辑获得分 已有联系人个数小于限制数和等于限制数
+				//       小于限制数时，当新增号码 与已有号码相同，则进行update操作，如果不同， 再对位置  进行判断   位置相同此处是update已有的数据  不同 则进行insert操作
+				                   
+				if (infoRight && size < linkManNumber) {
+					for (int i = 0; i < size; i++) {
+						if (oldList.get(i).getLinkmanPhone()
+								.equals(applyLinkmanInfo.getLinkmanPhone())) {
+							operateFlag = 2;
+							oldList.remove(i);
+							i--;
+							size--;
+							break;
+						} else {
+							if (oldList.get(i).getAutoIndex()
+									.equals(applyLinkmanInfo.getAutoIndex())) {
+								operateFlag = 2;
+								oldList.remove(i);
+								i--;
+								size--;
+								break;
+							} else {
+								operateFlag = 1;
+							}
+						}
+
+					}
+					oldList.add(applyLinkmanInfo);
+				} else if (infoRight && size == linkManNumber) {
+					for (int i = 0; i < size; i++) {
+						operateFlag = 2;//当已有电话号码满足限制数时，一定是update操作，就看是替换号码 还是更新
+							if (oldList.get(i).getAutoIndex()
+									.equals(applyLinkmanInfo.getAutoIndex())) {
+								oldList.remove(i);
+								i--;
+								size--;
+								break;
+						}
+
+					}
+					oldList.add(applyLinkmanInfo);
+
+				}
+			}
+
+			if (infoRight) {
+				// 4 额外的条件判断 
+				//判断配偶相关情况
+				ResponseData<String> checkSpouseResult = checkLinkManSpouse(userId, oldList,
+						linkManNumber);
+
+				// 5根据标识进行操作
+				if (GlobalVar.RC_SUCCESS.equals(checkSpouseResult.getResponseCode())) {
+
+					if (1 == operateFlag) {
+						applyDao.saveLinkManInfo(userId, applyId, applyLinkmanInfo);
+					}
+					if (2 == operateFlag) {
+						applyDao.updateLinkManInfo(userId, applyId, applyLinkmanInfo);
+					}
+				}
+				if (GlobalVar.RC_FAIL.equals(checkSpouseResult.getResponseCode())) {
+					code = GlobalVar.RC_FAIL;
+					msg = checkSpouseResult.getResponseMsg();
+				}
+			} else {
+				code = GlobalVar.RC_FAIL;// 重复的号码在不同的位置
+			}
+		} else {
+			code = GlobalVar.RC_FAIL; //数据格式与内容不正确
+		}
+		List<ApplyLinkmanInfo> reslutList = this.linkmanInfo(userId, applyId, tagImgUrlPrefix);
+		if (null != reslutList && reslutList.size() > 0) {
+			for (ApplyLinkmanInfo man : reslutList) {
+				man.setApplyId(null);
+				man.setUserId(null);
+				man.setCreateTime(null);
+				man.setModifyTime(null);
+			}
+		}
+		//6 返回结果
+		Map<String, Object> result = new HashMap<String, Object>();
+		result.put("list", reslutList);
+		return GsonUtils.retJson(code, msg, result);
+
+	}
+
+
+	private ResponseData<String> checkLinkManSpouse(String userId,
+			List<ApplyLinkmanInfo> linkManlist, int linkManNumber) {
+
+		ResponseData<String> result = new ResponseData<String>();
+		int spouseNum = 0;// 联系人中的配偶个数
+		String msg = "";
+		String code = GlobalVar.RC_SUCCESS;
+
+		// 获得用户婚姻情况
+		Map<String, Object> userInfo = userDao.selectUserInfoByUserId(userId);
+		if (StringUtils.isEmpty(userInfo) || StringUtils.isEmpty(userInfo.get("maritalStatus"))) {
+			result.setResponseCode(GlobalVar.RC_FAIL);
+			result.setResponseMsg("用户信息查询出错");
+			return result;
+		}
+		String maritalStatus = String.valueOf(userInfo.get("maritalStatus"));
+
+		// 对用户联系人中的配偶计数
+		for (ApplyLinkmanInfo applyLinkmanInfo2 : linkManlist) {
+
+			if ("2".equals(applyLinkmanInfo2.getLinkmanTag())) {
+				spouseNum++;
+			}
+		}
+
+		// 分情况讨论
+		if ("2".equals(maritalStatus)) {// 已经结婚情况
+			if (linkManlist.size() < linkManNumber) {// 当联系人数不满限制数时，若有不能大于1
+				if (spouseNum > 1) {
+					msg = "配偶数大于1";
+					code = GlobalVar.RC_FAIL;
+				}
+			} else {// 当联系人数等于限制数时，有且只有一个配偶
+				if (spouseNum == 0) {
+					msg = "请添加您配偶联系方式";
+					code = GlobalVar.RC_FAIL;
+				}
+				if (spouseNum > 1) {
+					msg = "配偶数大于1";
+					code = GlobalVar.RC_FAIL;
+				}
+			}
+		} else {// 未婚情况
+			if (spouseNum > 0) {
+				msg = "您的婚姻状况不是已婚，不可添加配偶联系人。";
+				code = GlobalVar.RC_FAIL;
+			}
+		}
+		result.setResponseMsg(msg);
+		result.setResponseCode(code);
+		return result;
+	}

@@ -1,0 +1,147 @@
+@Override
+	public String saveLinkmanInfo(String userId, String applyId, ApplyLinkmanInfo applyLinkmanInfo,
+			String tagImgUrlPrefix) {
+		int saveNumber = 0;
+		if (StringUtils.isEmpty(userId) || StringUtils.isEmpty(applyId) || null == applyLinkmanInfo)
+			return GsonUtils.retJson(GlobalVar.RC_PARAMS_NULL, GlobalVar.RM_PARAMS_NULL, "");
+		int linkManNumber = this.linkmanNumber();// 申请联系人配置个数
+		List<ApplyLinkmanInfo> saveList = new ArrayList<ApplyLinkmanInfo>();// 需要保存的联系人
+		List<ApplyLinkmanInfo> delList = new ArrayList<ApplyLinkmanInfo>();// 需要删除的联系人
+		boolean infoRight = true;// 用于验证联系人数据是否完整
+		int oldNumber = 0;
+		int newNumber = 0;
+		int delNumber = 0;
+		String msg = GlobalVar.RM_EXCEPMES;
+		String code = GlobalVar.RC_FAIL;
+		List<ApplyLinkmanInfo> oldList = applyDao.queryApplyLinkmanInfo(userId, applyId);// 获取已经添加的联系人
+
+		// for (ApplyLinkmanInfo linkmanInfo : list) {
+		// if(linkmanInfo==null)continue;
+		// 校验数据是否完整
+		if (StringUtils.isEmpty(applyLinkmanInfo.getLinkmanName())) {
+			infoRight = false;
+			msg = GlobalVar.RM_LINKMAN_MSG2;
+			logger.info("saveLinkmanInfo param linkManName is null!");
+		}
+		// 校验参数是否符合规则
+		String phone = applyLinkmanInfo.getLinkmanPhone();
+		if (!StringUtils.isEmpty(phone)) {
+			if (phone.startsWith("+86")) {
+				phone = phone.substring(3, phone.length());
+			}
+			if (!StringUtils.isMobile(phone)) {
+				infoRight = false;
+				msg = GlobalVar.RM_MOBILERROR;
+				logger.info("saveLinkmanInfo param linkManPhone is error!");
+			}
+		} else {
+			infoRight = false;
+			logger.info("saveLinkmanInfo param linkManPhone is null!");
+			msg = GlobalVar.RM_MOBILERROR;
+
+		}
+
+		boolean isSave = false;
+		int spouseNum = 0;// 联系人中的配偶个数
+		boolean spouseflag = false; // 联系人中是否有配偶
+		int repeatNumber = 0;
+		if (null != oldList && !oldList.isEmpty()) {
+			oldNumber = oldList.size();
+			for (ApplyLinkmanInfo oldinkman : oldList) {
+				if ("2".equals(oldinkman.getLinkmanTag())) {
+					spouseNum++;
+					spouseflag = true;
+				}
+
+				if (oldinkman.getLinkmanPhone().equals(applyLinkmanInfo.getLinkmanPhone())) {
+					logger.info("Save phone!");
+					repeatNumber++;
+					if(oldinkman.getLinkmanTag().equals(applyLinkmanInfo.getLinkmanTag())){
+					isSave = true;
+					msg = "请不要重复添加!";
+					continue;
+					}
+					
+				}
+				if (!StringUtils.isEmpty(applyLinkmanInfo.getAutoIndex())
+						&& Integer.valueOf(applyLinkmanInfo.getAutoIndex()) > 0
+						&& oldinkman.getLinkmanPhone().equals(applyLinkmanInfo.getLinkmanPhone())) {
+					delNumber++;
+					logger.info("add del ApplyLinkmanInfo!");
+					delList.add(oldinkman);
+					if ("2".equals(oldinkman.getLinkmanTag())) {// 如果要删除的数据中有配偶的 需去除
+						spouseflag = false;
+						spouseNum--;
+					}
+				}
+			}
+		}
+		if(repeatNumber > 1){//对 重复提交的不同号码进行检查
+			isSave = true;
+			msg = "请不要重复添加!";
+		}
+		if (!isSave) {
+			// newNumber++;
+			saveList.add(applyLinkmanInfo);
+		}
+		// }
+		//配偶相关逻辑    开始
+		Map<String, Object> userInfo = userDao.selectUserInfoByUserId(userId);
+		if (StringUtils.isEmpty(userInfo) || StringUtils.isEmpty(userInfo.get("maritalStatus"))) {
+
+			return GsonUtils.retJson(GlobalVar.RC_FAIL, "用户信息查询出错", "");
+		}
+		String maritalStatus = String.valueOf(userInfo.get("maritalStatus"));
+
+		if ("2".equals(applyLinkmanInfo.getLinkmanTag())) {
+			spouseNum++;
+			spouseflag = true;
+
+		}
+
+		if (infoRight && "2".equals(maritalStatus)) {// 用户结婚了，那么我们就去找找他/她有没有配偶的联系方式
+			/*
+			 * if(!spouseflag){ logger.info("联系人未填配偶"); return GsonUtils.retJson(GlobalVar.RC_FAIL,
+			 * "联系人未填配偶", ""); }
+			 */
+			if (spouseNum > 1) {
+				logger.info("配偶数大于1");
+				return GsonUtils.retJson(GlobalVar.RC_FAIL, "配偶数大于1", "");
+			}
+		} else if (spouseflag) {
+			logger.info("联系人不应填配偶");
+			return GsonUtils.retJson(GlobalVar.RC_FAIL, "您的婚姻状况不是已婚，不可添加配偶联系人。", "");
+		}
+		//配偶相关逻辑    结束
+		if (infoRight && !saveList.isEmpty()) {
+			newNumber = saveList.size();
+			delNumber = delList.size();
+			if ((newNumber + (oldNumber - delNumber)) > linkManNumber) {
+				logger.info("saveLinkmanInfo number limit!");
+				msg = GlobalVar.RM_APPLY_LINKMAN_LIMIT;
+			} else {
+				logger.info("save Linkman Info!");
+				applyDao.delLinkManInfo(userId, applyId, delList);
+				saveNumber = applyDao.saveLinkManInfo(userId, applyId, saveList);
+			}
+		}
+		Map<String, Object> result = new HashMap<String, Object>();
+		logger.info("saveLinkmanInfo saveNumber!" + saveNumber);
+		result.put("applyId", applyId);
+		result.put("needUpload", this.needUploadContacts(userId, applyId) ? "1" : "0");
+		if (saveNumber > 0) {
+			List<ApplyLinkmanInfo> reslutList = this.linkmanInfo(userId, applyId, tagImgUrlPrefix);
+			if (null != reslutList && reslutList.size() > 0) {
+				for (ApplyLinkmanInfo man : reslutList) {
+					man.setApplyId(null);
+					man.setUserId(null);
+					man.setCreateTime(null);
+					man.setModifyTime(null);
+				}
+			}
+			result.put("list", reslutList);
+			code = GlobalVar.RC_SUCCESS;
+			msg = GlobalVar.RM_SUCCESS;
+		}
+		return GsonUtils.retJson(code, msg, result);
+	}
